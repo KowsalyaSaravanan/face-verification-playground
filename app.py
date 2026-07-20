@@ -108,7 +108,7 @@ def main() -> None:
     face_detector = get_face_detector()
 
     st.sidebar.header("Demo")
-    demo_mode = st.sidebar.toggle("Use bundled sample photos", value=True)
+    demo_mode = st.sidebar.toggle("Use bundled sample photos", value=False)
     threshold = st.sidebar.slider(
         "Match threshold",
         min_value=0.20,
