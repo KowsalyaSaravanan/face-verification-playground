@@ -4,11 +4,7 @@ A lightweight KYC-style face verification demo built with Streamlit and InsightF
 
 ## Live Demo
 
-Deployment is pending. After the app is deployed, add the verified Streamlit URL here:
-
-```text
-https://<app-name>.streamlit.app
-```
+[Open the live Streamlit demo](https://face-verification-playground-y6njm5svnwtmynouybvhys.streamlit.app/)
 
 ## What It Does
 

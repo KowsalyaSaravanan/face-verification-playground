@@ -72,11 +72,11 @@ def validate_and_render(face_detector, label: str, image_rgb):
 
     if validation.error:
         st.error(validation.error)
-        st.image(image_rgb, caption="Retry with upload or camera.", use_container_width=True)
+        st.image(image_rgb, caption="Retry with upload or camera.", width="stretch")
         return validation
 
     st.success("Exactly one face detected.")
-    st.image(validation.preview_rgb, caption="Detected face region", use_container_width=True)
+    st.image(validation.preview_rgb, caption="Detected face region", width="stretch")
     return validation
 
 
@@ -161,9 +161,9 @@ def main() -> None:
         st.header("Verification Result")
         photo_col_1, photo_col_2 = st.columns(2)
         with photo_col_1:
-            st.image(reference_validation.image_rgb, caption="Original reference photo", use_container_width=True)
+            st.image(reference_validation.image_rgb, caption="Original reference photo", width="stretch")
         with photo_col_2:
-            st.image(verify_validation.image_rgb, caption="Original photo to verify", use_container_width=True)
+            st.image(verify_validation.image_rgb, caption="Original photo to verify", width="stretch")
 
         st.metric("Similarity score", f"{similarity_percent:.2f}%")
         result_badge(is_match)
@@ -172,9 +172,9 @@ def main() -> None:
         with st.expander("See what the model actually compared"):
             crop_col_1, crop_col_2 = st.columns(2)
             with crop_col_1:
-                st.image(reference_validation.crop_rgb, caption="Reference face-only crop", use_container_width=True)
+                st.image(reference_validation.crop_rgb, caption="Reference face-only crop", width="stretch")
             with crop_col_2:
-                st.image(verify_validation.crop_rgb, caption="Verify face-only crop", use_container_width=True)
+                st.image(verify_validation.crop_rgb, caption="Verify face-only crop", width="stretch")
 
 
 if __name__ == "__main__":
