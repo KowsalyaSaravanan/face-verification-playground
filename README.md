@@ -26,9 +26,16 @@ Users can provide each photo by upload or webcam capture, so all combinations ar
 1. Detect one face in each full photo with InsightFace.
 2. Crop only the detected face region from each photo.
 3. Generate embeddings from those face-only crops.
-4. Compare the embeddings with cosine similarity and apply a tunable threshold.
+4. Compare the embeddings with normalized cosine similarity and apply the same default threshold style as the backend `IdentityChecker`.
 
 The app rejects images with zero faces or multiple faces and asks the user to retry that specific photo.
+
+The app logic is intentionally close to the existing backend pattern:
+
+- `FaceDetector` wraps `insightface.app.FaceAnalysis()`.
+- The model runs on CPU with `ctx_id=-1` and `det_size=(640, 640)`.
+- `IdentityChecker` normalizes both embeddings before the dot-product similarity check.
+- Default match threshold is `0.60`, adjustable from the sidebar.
 
 ## Screenshots/GIF
 
@@ -81,11 +88,11 @@ This is an educational portfolio demo, not a production identity-verification sy
 
 - Python
 - Streamlit
-- InsightFace `buffalo_l`
-- ONNX Runtime CPU
-- OpenCV headless
-- Pillow
-- NumPy
+- InsightFace `0.7.3`
+- ONNX Runtime `1.20.1`
+- OpenCV headless `4.10.0.84`
+- Pillow `11.0.0`
+- NumPy `1.26.4`
 
 ## Project Structure
 

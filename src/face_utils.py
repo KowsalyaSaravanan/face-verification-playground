@@ -1,16 +1,18 @@
-"""InsightFace helpers for detection, tight cropping, embedding, and matching."""
+"""Face detection and identity matching logic, aligned with the backend code."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
+import contextlib
+import os
 from typing import Sequence
 
 import cv2
+import insightface
 import numpy as np
-from insightface.app import FaceAnalysis
 from PIL import Image, ImageDraw
 
-from .config import DETECTION_SIZE, MODEL_PACK_NAME
+from .config import DETECTION_SIZE, SIMILARITY_THRESHOLD
 
 
 @dataclass(frozen=True)
@@ -26,10 +28,50 @@ class FaceValidation:
         return self.error is None and self.bbox is not None and self.crop_rgb is not None
 
 
-def load_analyzer() -> FaceAnalysis:
-    analyzer = FaceAnalysis(name=MODEL_PACK_NAME, providers=["CPUExecutionProvider"])
-    analyzer.prepare(ctx_id=-1, det_size=DETECTION_SIZE)
-    return analyzer
+class FaceDetector:
+    def __init__(self):
+        with open(os.devnull, "w") as devnull:
+            with contextlib.redirect_stdout(devnull), contextlib.redirect_stderr(devnull):
+                self.model = insightface.app.FaceAnalysis()
+                self.model.prepare(ctx_id=-1, det_size=DETECTION_SIZE)
+
+    def detect_faces(self, image_bgr: np.ndarray):
+        return self.model.get(image_bgr)
+
+    def get_face_count(self, image_bgr: np.ndarray) -> int:
+        return len(self.detect_faces(image_bgr))
+
+
+class IdentityChecker:
+    def __init__(self, face_detector: FaceDetector, threshold: float = SIMILARITY_THRESHOLD):
+        self.face_detector = face_detector
+        self.threshold = threshold
+
+    def cosine_similarity(self, emb1: np.ndarray, emb2: np.ndarray) -> float:
+        emb1 = emb1 / np.linalg.norm(emb1)
+        emb2 = emb2 / np.linalg.norm(emb2)
+        return float(np.dot(emb1, emb2))
+
+    def get_embedding(self, face_crop_rgb: np.ndarray) -> np.ndarray:
+        faces = self.face_detector.detect_faces(rgb_to_bgr(face_crop_rgb))
+        if len(faces) != 1:
+            raise ValueError(
+                "The face-only crop could not be embedded reliably. Please retry with a clearer photo."
+            )
+
+        embedding = getattr(faces[0], "embedding", None)
+        if embedding is None:
+            raise ValueError("InsightFace did not return an embedding for this face crop.")
+
+        return np.asarray(embedding, dtype=np.float32)
+
+    def verify_embeddings(self, reference_embedding: np.ndarray, verify_embedding: np.ndarray):
+        similarity = self.cosine_similarity(reference_embedding, verify_embedding)
+        return similarity >= self.threshold, similarity
+
+
+def load_face_detector() -> FaceDetector:
+    return FaceDetector()
 
 
 def pil_to_rgb_array(image: Image.Image) -> np.ndarray:
@@ -48,10 +90,6 @@ def load_image_path(path: str) -> np.ndarray:
 
 def rgb_to_bgr(image_rgb: np.ndarray) -> np.ndarray:
     return cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR)
-
-
-def detect_faces(analyzer: FaceAnalysis, image_rgb: np.ndarray) -> Sequence:
-    return analyzer.get(rgb_to_bgr(image_rgb))
 
 
 def normalize_bbox(bbox: Sequence[float], image_shape: tuple[int, ...]) -> tuple[int, int, int, int]:
@@ -77,8 +115,8 @@ def draw_detection_box(image_rgb: np.ndarray, bbox: tuple[int, int, int, int]) -
     return np.array(preview)
 
 
-def validate_single_face(analyzer: FaceAnalysis, image_rgb: np.ndarray) -> FaceValidation:
-    faces = detect_faces(analyzer, image_rgb)
+def validate_single_face(face_detector: FaceDetector, image_rgb: np.ndarray) -> FaceValidation:
+    faces = face_detector.detect_faces(rgb_to_bgr(image_rgb))
 
     if len(faces) == 0:
         return FaceValidation(
@@ -118,25 +156,3 @@ def validate_single_face(analyzer: FaceAnalysis, image_rgb: np.ndarray) -> FaceV
         error=None,
     )
 
-
-def embedding_from_face_crop(analyzer: FaceAnalysis, crop_rgb: np.ndarray) -> np.ndarray:
-    faces = detect_faces(analyzer, crop_rgb)
-
-    if len(faces) != 1:
-        raise ValueError(
-            "The face-only crop could not be embedded reliably. Please retry with a clearer, front-facing photo."
-        )
-
-    embedding = faces[0].normed_embedding
-    if embedding is None:
-        raise ValueError("InsightFace did not return an embedding for this face crop.")
-
-    return np.asarray(embedding, dtype=np.float32)
-
-
-def cosine_similarity(first_embedding: np.ndarray, second_embedding: np.ndarray) -> float:
-    numerator = float(np.dot(first_embedding, second_embedding))
-    denominator = float(np.linalg.norm(first_embedding) * np.linalg.norm(second_embedding))
-    if denominator == 0:
-        return 0.0
-    return numerator / denominator

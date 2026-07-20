@@ -1,8 +1,7 @@
 """Configuration values for the face verification demo."""
 
-MODEL_PACK_NAME = "buffalo_l"
 DETECTION_SIZE = (640, 640)
-SIMILARITY_THRESHOLD = 0.40
+SIMILARITY_THRESHOLD = 0.60
 
 REFERENCE_LABEL = "Reference Photo"
 VERIFY_LABEL = "Photo to Verify"

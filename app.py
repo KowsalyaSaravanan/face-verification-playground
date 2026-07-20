@@ -6,9 +6,8 @@ import streamlit as st
 
 from src.config import REFERENCE_LABEL, SAMPLE_PAIRS, SIMILARITY_THRESHOLD, VERIFY_LABEL
 from src.face_utils import (
-    cosine_similarity,
-    embedding_from_face_crop,
-    load_analyzer,
+    IdentityChecker,
+    load_face_detector,
     load_image_path,
     read_image_file,
     validate_single_face,
@@ -19,8 +18,8 @@ ROOT_DIR = Path(__file__).parent
 
 
 @st.cache_resource(show_spinner="Loading InsightFace models. First run can take a few minutes...")
-def get_analyzer():
-    return load_analyzer()
+def get_face_detector():
+    return load_face_detector()
 
 
 def show_privacy_note() -> None:
@@ -60,13 +59,13 @@ def image_input(label: str, key_prefix: str):
     return read_image_file(captured)
 
 
-def validate_and_render(analyzer, label: str, image_rgb):
+def validate_and_render(face_detector, label: str, image_rgb):
     if image_rgb is None:
         st.info(f"Add a {label.lower()} to continue.")
         return None
 
     try:
-        validation = validate_single_face(analyzer, image_rgb)
+        validation = validate_single_face(face_detector, image_rgb)
     except Exception as exc:
         st.error(f"Could not process this photo: {exc}")
         return None
@@ -106,7 +105,7 @@ def main() -> None:
     st.caption("KYC-style two-photo face verification with InsightFace.")
     show_privacy_note()
 
-    analyzer = get_analyzer()
+    face_detector = get_face_detector()
 
     st.sidebar.header("Demo")
     demo_mode = st.sidebar.toggle("Use bundled sample photos", value=True)
@@ -128,12 +127,12 @@ def main() -> None:
     with ref_col:
         if not demo_mode:
             reference_image = image_input(REFERENCE_LABEL, "reference")
-        reference_validation = validate_and_render(analyzer, REFERENCE_LABEL, reference_image)
+        reference_validation = validate_and_render(face_detector, REFERENCE_LABEL, reference_image)
 
     with verify_col:
         if not demo_mode:
             verify_image = image_input(VERIFY_LABEL, "verify")
-        verify_validation = validate_and_render(analyzer, VERIFY_LABEL, verify_image)
+        verify_validation = validate_and_render(face_detector, VERIFY_LABEL, verify_image)
 
     can_verify = bool(
         reference_validation
@@ -148,14 +147,14 @@ def main() -> None:
 
     if verify_clicked and can_verify:
         try:
-            reference_embedding = embedding_from_face_crop(analyzer, reference_validation.crop_rgb)
-            verify_embedding = embedding_from_face_crop(analyzer, verify_validation.crop_rgb)
-            score = cosine_similarity(reference_embedding, verify_embedding)
+            identity_checker = IdentityChecker(face_detector, threshold=threshold)
+            reference_embedding = identity_checker.get_embedding(reference_validation.crop_rgb)
+            verify_embedding = identity_checker.get_embedding(verify_validation.crop_rgb)
+            is_match, score = identity_checker.verify_embeddings(reference_embedding, verify_embedding)
         except Exception as exc:
             st.error(f"Verification failed: {exc}")
             return
 
-        is_match = score >= threshold
         similarity_percent = max(0.0, min(1.0, score)) * 100
 
         st.divider()
