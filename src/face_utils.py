@@ -1,4 +1,4 @@
-"""Face detection and identity matching logic, aligned with the backend code."""
+"""Face detection and identity matching logic."""
 
 from __future__ import annotations
 
@@ -67,7 +67,7 @@ class IdentityChecker:
 
         embedding = getattr(faces[0], "embedding", None)
         if embedding is None:
-            raise ValueError("InsightFace did not return an embedding for this face crop.")
+            raise ValueError("The face pipeline did not return an embedding for this face crop.")
 
         return np.asarray(embedding, dtype=np.float32)
 
@@ -152,7 +152,7 @@ def validate_single_face(face_detector: FaceDetector, image_rgb: np.ndarray) -> 
             crop_rgb=None,
             preview_rgb=None,
             embedding=None,
-            error="InsightFace could not create an embedding for this face - please try a clearer photo.",
+            error="The face pipeline could not create an embedding for this face - please try a clearer photo.",
         )
 
     bbox = normalize_bbox(faces[0].bbox, image_rgb.shape)

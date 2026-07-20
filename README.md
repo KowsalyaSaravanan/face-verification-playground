@@ -2,7 +2,7 @@
   <img src="docs/assets/app-preview.png" alt="Face Verification Playground preview" width="100%" />
   <h1>Face Verification Playground</h1>
   <p>
-    A portfolio-grade KYC-style face verification application built with Streamlit and InsightFace.
+    A portfolio-grade KYC-style face verification application using an open-source face detection and embedding pipeline.
   </p>
   <p>
     <a href="https://face-verification-playground-y6njm5svnwtmynouybvhys.streamlit.app/"><strong>Live Streamlit Demo</strong></a>
@@ -17,21 +17,23 @@
 
 ## Application Overview
 
-Face Verification Playground recreates the core face-matching workflow used in a KYC identity check:
+Face Verification Playground recreates the core workflow of a lightweight identity verification screen:
 
 <table>
   <tr>
     <td width="33%"><strong>1. Capture</strong><br />Accept a reference photo and a verification photo from upload or live webcam capture.</td>
-    <td width="33%"><strong>2. Validate</strong><br />Run InsightFace detection and require exactly one face in each image before verification.</td>
-    <td width="33%"><strong>3. Compare</strong><br />Generate embeddings and compare them with normalized cosine similarity.</td>
+    <td width="33%"><strong>2. Validate</strong><br />Require exactly one detected face in each image before verification.</td>
+    <td width="33%"><strong>3. Compare</strong><br />Compare face embeddings with normalized cosine similarity.</td>
   </tr>
 </table>
 
-The project is a public, safe portfolio recreation. It does not include client code, bank data, proprietary weights, authentication, or persistent storage.
+This is a public, safe portfolio recreation. It contains no client code, no bank data, no proprietary weights, no authentication layer, and no persistent image storage.
+
+The source code is public so technical reviewers can inspect the implementation. Only portfolio-safe demo code and synthetic sample images are included.
 
 ## Reference Images
 
-The repository includes synthetic sample images so recruiters can try the app immediately without providing their own photos.
+The repository includes synthetic sample images so the app can be tested immediately without personal photos.
 
 <table>
   <tr>
@@ -51,7 +53,7 @@ The repository includes synthetic sample images so recruiters can try the app im
 ## Product Behavior
 
 - Each side supports both upload and live camera capture.
-- A sample-photo mode is included for instant recruiter demos.
+- A sample-photo mode is included for instant demos.
 - The reference and verification images are validated independently.
 - Zero-face images show a clear retry message.
 - Multi-face images are rejected instead of auto-selecting a face.
@@ -60,12 +62,14 @@ The repository includes synthetic sample images so recruiters can try the app im
 
 ## Implementation Notes
 
-The face logic follows the same simple backend pattern used in production-style services:
+The application keeps the implementation intentionally small and backend-friendly:
 
-- `FaceDetector` wraps `insightface.app.FaceAnalysis()`.
-- The detector runs on CPU with `ctx_id=-1` and `det_size=(640, 640)`.
-- `IdentityChecker` normalizes embeddings before dot-product cosine comparison.
-- Default match threshold is `0.60`, adjustable in the app.
+- A detector component validates the face count and creates embeddings.
+- A matcher component normalizes embeddings before cosine comparison.
+- The default decision threshold is adjustable in the app.
+- The app runs on CPU-friendly open-source dependencies and requires no paid API keys.
+
+Exact dependency versions are kept in `requirements.txt` for reproducible setup, but the public product copy avoids exposing model-pack details.
 
 ## Setup
 
@@ -82,17 +86,17 @@ uv pip install -r requirements.txt
 uv run streamlit run app.py
 ```
 
-The first run can take a few minutes because InsightFace downloads the open model pack automatically.
+The first run can take a few minutes while open-source pipeline assets are prepared.
 
-On Windows with Python 3.12, `insightface==0.7.3` may require Microsoft Visual C++ Build Tools when a matching wheel is unavailable.
+On Windows with Python 3.12, some native packages may require Microsoft Visual C++ Build Tools when a matching wheel is unavailable.
 
 ## Tech Stack
 
 <table>
   <tr><td><strong>Frontend</strong></td><td>Streamlit</td></tr>
-  <tr><td><strong>Face analysis</strong></td><td>InsightFace 0.7.3</td></tr>
+  <tr><td><strong>Face pipeline</strong></td><td>Open-source face detection and embedding</td></tr>
   <tr><td><strong>Runtime</strong></td><td>Python 3.12</td></tr>
-  <tr><td><strong>Inference backend</strong></td><td>ONNX Runtime 1.20.1 CPU</td></tr>
+  <tr><td><strong>Inference backend</strong></td><td>CPU inference runtime</td></tr>
   <tr><td><strong>Image handling</strong></td><td>OpenCV headless, Pillow, NumPy</td></tr>
 </table>
 
@@ -108,28 +112,28 @@ This is an educational and portfolio demonstration, not a production identity-ve
 
 ```text
 face-verification-playground/
-├── app.py
-├── requirements.txt
-├── runtime.txt
-├── src/
-│   ├── face_utils.py
-│   └── config.py
-├── sample_data/
-│   ├── match_pair/
-│   │   ├── ref.jpg
-│   │   └── verify.jpg
-│   └── no_match_pair/
-│       ├── ref.jpg
-│       └── verify.jpg
-├── docs/
-│   └── assets/
-│       ├── app-preview.png
-│       ├── reference-sample.jpg
-│       └── verify-sample.jpg
-├── README.md
-├── LICENSE
-├── .gitignore
-└── .env.example
+|-- app.py
+|-- requirements.txt
+|-- runtime.txt
+|-- src/
+|   |-- face_utils.py
+|   `-- config.py
+|-- sample_data/
+|   |-- match_pair/
+|   |   |-- ref.jpg
+|   |   `-- verify.jpg
+|   `-- no_match_pair/
+|       |-- ref.jpg
+|       `-- verify.jpg
+|-- docs/
+|   `-- assets/
+|       |-- app-preview.png
+|       |-- reference-sample.jpg
+|       `-- verify-sample.jpg
+|-- README.md
+|-- LICENSE
+|-- .gitignore
+`-- .env.example
 ```
 
 ## License

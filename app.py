@@ -239,7 +239,7 @@ def inject_styles() -> None:
     )
 
 
-@st.cache_resource(show_spinner="Loading InsightFace models. First run can take a few minutes...")
+@st.cache_resource(show_spinner="Loading face analysis pipeline. First run can take a few minutes...")
 def get_face_detector():
     return load_face_detector()
 
@@ -254,12 +254,12 @@ def show_header() -> None:
                     <h1>Face Verification Playground</h1>
                     <p>A public portfolio-grade recreation of a KYC face-match screen. The app
                     accepts a reference photo and a live or uploaded verification photo, validates
-                    that each contains exactly one face, then compares InsightFace embeddings.</p>
+                    that each contains exactly one face, then compares face embeddings.</p>
                 </div>
                 <div class="hero-card">
                     <h3>Session controls</h3>
                     <div class="check-row"><span>Storage</span><strong>In memory only</strong></div>
-                    <div class="check-row"><span>Detector</span><strong>InsightFace CPU</strong></div>
+                    <div class="check-row"><span>Inference</span><strong>CPU pipeline</strong></div>
                     <div class="check-row"><span>Decision</span><strong>Cosine threshold</strong></div>
                     <div class="check-row"><span>Use case</span><strong>Portfolio demo</strong></div>
                 </div>
@@ -289,7 +289,7 @@ def show_workflow() -> None:
             <div class="workflow-card">
                 <div class="workflow-number">3</div>
                 <strong>Compare identity</strong>
-                <p>InsightFace embeddings are compared with normalized cosine similarity.</p>
+                <p>Face embeddings are compared with normalized cosine similarity.</p>
             </div>
         </div>
         """,
