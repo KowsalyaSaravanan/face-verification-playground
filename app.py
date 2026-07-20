@@ -29,13 +29,16 @@ def inject_styles() -> None:
             --kyc-green: #047857;
             --kyc-red: #dc2626;
             --kyc-blue: #1d4ed8;
+            --kyc-teal: #0f766e;
         }
         .stApp {
-            background: linear-gradient(180deg, #f6f8fb 0%, #ffffff 32%);
+            background:
+                linear-gradient(135deg, rgba(15, 118, 110, 0.08), transparent 34%),
+                linear-gradient(180deg, #eef2f7 0%, #ffffff 38%);
         }
         .block-container {
-            max-width: 1180px;
-            padding-top: 2rem;
+            max-width: 1220px;
+            padding-top: 1.7rem;
             padding-bottom: 3rem;
         }
         [data-testid="stSidebar"] {
@@ -49,7 +52,7 @@ def inject_styles() -> None:
             letter-spacing: 0;
         }
         div.stButton > button[kind="primary"] {
-            width: 220px;
+            width: 260px;
             height: 48px;
             border-radius: 6px;
             background: #111827;
@@ -61,31 +64,71 @@ def inject_styles() -> None:
             border-color: #1f2937;
         }
         .hero {
-            border: 1px solid var(--kyc-line);
+            border: 1px solid #1f2937;
             border-radius: 8px;
-            padding: 28px 30px;
-            background: #ffffff;
-            box-shadow: 0 18px 40px rgba(17, 24, 39, 0.07);
-            margin-bottom: 20px;
+            padding: 0;
+            background: #0f172a;
+            box-shadow: 0 22px 48px rgba(15, 23, 42, 0.18);
+            margin-bottom: 18px;
+            overflow: hidden;
+        }
+        .hero-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.7fr) minmax(300px, 0.8fr);
+            gap: 28px;
+            padding: 34px 36px;
+        }
+        .hero::before {
+            content: "";
+            display: block;
+            height: 5px;
+            background: linear-gradient(90deg, #14b8a6, #38bdf8, #a7f3d0);
         }
         .eyebrow {
-            color: var(--kyc-blue);
+            color: #5eead4;
             font-size: 0.78rem;
             font-weight: 800;
             text-transform: uppercase;
+            letter-spacing: 0.06em;
             margin-bottom: 8px;
         }
         .hero h1 {
-            color: var(--kyc-ink);
-            font-size: clamp(2rem, 4vw, 3.3rem);
+            color: #ffffff;
+            font-size: clamp(2.15rem, 4vw, 3.55rem);
             line-height: 1.05;
             margin: 0;
         }
         .hero p {
-            color: var(--kyc-muted);
-            max-width: 760px;
+            color: #cbd5e1;
+            max-width: 720px;
             font-size: 1rem;
             margin: 14px 0 0 0;
+        }
+        .hero-card {
+            border: 1px solid rgba(148, 163, 184, 0.36);
+            background: rgba(15, 23, 42, 0.68);
+            border-radius: 8px;
+            padding: 18px;
+        }
+        .hero-card h3 {
+            color: #ffffff;
+            margin: 0 0 12px 0;
+            font-size: 1rem;
+        }
+        .check-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 18px;
+            color: #cbd5e1;
+            border-top: 1px solid rgba(148, 163, 184, 0.22);
+            padding: 10px 0;
+            font-size: 0.88rem;
+        }
+        .check-row:first-of-type {
+            border-top: 0;
+        }
+        .check-row strong {
+            color: #ffffff;
         }
         .privacy {
             border: 1px solid #bfdbfe;
@@ -95,6 +138,49 @@ def inject_styles() -> None:
             padding: 12px 14px;
             margin: 8px 0 18px 0;
             font-size: 0.92rem;
+        }
+        .workflow-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+            margin: 14px 0 18px 0;
+        }
+        .workflow-card {
+            border: 1px solid var(--kyc-line);
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+        }
+        .workflow-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 999px;
+            background: #ccfbf1;
+            color: #115e59;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+        .workflow-card strong {
+            display: block;
+            color: var(--kyc-ink);
+            margin-bottom: 4px;
+        }
+        .workflow-card p {
+            color: var(--kyc-muted);
+            margin: 0;
+            font-size: 0.9rem;
+        }
+        .panel-heading {
+            font-size: 0.84rem;
+            font-weight: 800;
+            color: var(--kyc-teal);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 8px;
         }
         .section-title {
             font-size: 1.02rem;
@@ -141,6 +227,12 @@ def inject_styles() -> None:
             padding: 18px;
             margin-top: 14px;
         }
+        @media (max-width: 900px) {
+            .hero-grid,
+            .workflow-grid {
+                grid-template-columns: 1fr;
+            }
+        }
         </style>
         """,
         unsafe_allow_html=True,
@@ -156,13 +248,50 @@ def show_header() -> None:
     st.markdown(
         """
         <div class="hero">
-            <div class="eyebrow">KYC face match demo</div>
-            <h1>Face Verification Playground</h1>
-            <p>Compare a reference photo with a verification photo using InsightFace detection,
-            face-only review crops, and normalized embedding similarity.</p>
+            <div class="hero-grid">
+                <div>
+                    <div class="eyebrow">Identity verification console</div>
+                    <h1>Face Verification Playground</h1>
+                    <p>A public portfolio-grade recreation of a KYC face-match screen. The app
+                    accepts a reference photo and a live or uploaded verification photo, validates
+                    that each contains exactly one face, then compares InsightFace embeddings.</p>
+                </div>
+                <div class="hero-card">
+                    <h3>Session controls</h3>
+                    <div class="check-row"><span>Storage</span><strong>In memory only</strong></div>
+                    <div class="check-row"><span>Detector</span><strong>InsightFace CPU</strong></div>
+                    <div class="check-row"><span>Decision</span><strong>Cosine threshold</strong></div>
+                    <div class="check-row"><span>Use case</span><strong>Portfolio demo</strong></div>
+                </div>
+            </div>
         </div>
         <div class="privacy">Photos are processed only in memory for this session. Nothing is saved,
         stored in a database, or kept after the session ends.</div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def show_workflow() -> None:
+    st.markdown(
+        """
+        <div class="workflow-grid">
+            <div class="workflow-card">
+                <div class="workflow-number">1</div>
+                <strong>Capture both photos</strong>
+                <p>Use file upload or camera capture independently for reference and verify images.</p>
+            </div>
+            <div class="workflow-card">
+                <div class="workflow-number">2</div>
+                <strong>Validate one face</strong>
+                <p>Each photo must contain exactly one detected face before verification can run.</p>
+            </div>
+            <div class="workflow-card">
+                <div class="workflow-number">3</div>
+                <strong>Compare identity</strong>
+                <p>InsightFace embeddings are compared with normalized cosine similarity.</p>
+            </div>
+        </div>
         """,
         unsafe_allow_html=True,
     )
@@ -252,14 +381,16 @@ def main() -> None:
     )
     inject_styles()
     show_header()
+    show_workflow()
 
     face_detector = get_face_detector()
 
     controls = st.container(border=True)
     with controls:
+        st.markdown('<div class="panel-heading">Verification setup</div>', unsafe_allow_html=True)
         control_col_1, control_col_2 = st.columns([1, 2])
         with control_col_1:
-            demo_mode = st.toggle("Use bundled sample photos", value=False)
+            demo_mode = st.checkbox("Load sample photos", value=False)
         with control_col_2:
             threshold = st.slider(
                 "Match threshold",
@@ -315,18 +446,19 @@ def main() -> None:
 
         similarity_percent = max(0.0, min(1.0, score)) * 100
 
-        st.markdown('<div class="result-panel">', unsafe_allow_html=True)
-        st.subheader("Verification Result")
-        photo_col_1, photo_col_2 = st.columns(2)
-        with photo_col_1:
-            st.image(reference_validation.image_rgb, caption="Original reference photo", width="stretch")
-        with photo_col_2:
-            st.image(verify_validation.image_rgb, caption="Original photo to verify", width="stretch")
-
-        st.metric("Similarity score", f"{similarity_percent:.2f}%")
-        result_badge(is_match)
-        st.caption(f"Decision threshold: {threshold:.2f} cosine similarity")
-        st.markdown("</div>", unsafe_allow_html=True)
+        with st.container(border=True):
+            st.markdown('<div class="panel-heading">Verification result</div>', unsafe_allow_html=True)
+            result_col_1, result_col_2 = st.columns([1, 2])
+            with result_col_1:
+                st.metric("Similarity score", f"{similarity_percent:.2f}%")
+                result_badge(is_match)
+                st.caption(f"Decision threshold: {threshold:.2f} cosine similarity")
+            with result_col_2:
+                photo_col_1, photo_col_2 = st.columns(2)
+                with photo_col_1:
+                    st.image(reference_validation.image_rgb, caption="Original reference photo", width="stretch")
+                with photo_col_2:
+                    st.image(verify_validation.image_rgb, caption="Original photo to verify", width="stretch")
 
         with st.expander("See what the model actually compared"):
             crop_col_1, crop_col_2 = st.columns(2)

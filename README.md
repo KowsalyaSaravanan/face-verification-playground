@@ -1,44 +1,70 @@
-# Face Verification Playground
+<div align="center">
+  <img src="docs/assets/app-preview.png" alt="Face Verification Playground preview" width="100%" />
+  <h1>Face Verification Playground</h1>
+  <p>
+    A portfolio-grade KYC-style face verification application built with Streamlit and InsightFace.
+  </p>
+  <p>
+    <a href="https://face-verification-playground-y6njm5svnwtmynouybvhys.streamlit.app/"><strong>Live Streamlit Demo</strong></a>
+    &nbsp;|&nbsp;
+    <a href="#setup"><strong>Local Setup</strong></a>
+    &nbsp;|&nbsp;
+    <a href="#privacy"><strong>Privacy Notes</strong></a>
+  </p>
+</div>
 
-A lightweight KYC-style face verification demo built with Streamlit and InsightFace.
+---
 
-## Live Demo
+## Application Overview
 
-[Open the live Streamlit demo](https://face-verification-playground-y6njm5svnwtmynouybvhys.streamlit.app/)
+Face Verification Playground recreates the core face-matching workflow used in a KYC identity check:
 
-## What It Does
+<table>
+  <tr>
+    <td width="33%"><strong>1. Capture</strong><br />Accept a reference photo and a verification photo from upload or live webcam capture.</td>
+    <td width="33%"><strong>2. Validate</strong><br />Run InsightFace detection and require exactly one face in each image before verification.</td>
+    <td width="33%"><strong>3. Compare</strong><br />Generate embeddings and compare them with normalized cosine similarity.</td>
+  </tr>
+</table>
 
-This app compares two photos and decides whether they appear to show the same person. It recreates the face-matching core of a KYC identity-check flow using only open InsightFace models, synthetic sample images, and session-only processing.
+The project is a public, safe portfolio recreation. It does not include client code, bank data, proprietary weights, authentication, or persistent storage.
 
-Users can provide each photo by upload or webcam capture, so all combinations are supported:
+## Reference Images
 
-1. Upload vs upload
-2. Upload vs webcam
-3. Webcam vs upload
-4. Webcam vs webcam
+The repository includes synthetic sample images so recruiters can try the app immediately without providing their own photos.
 
-## How It Works
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <img src="docs/assets/reference-sample.jpg" alt="Reference sample" width="100%" />
+      <br />
+      <strong>Reference Photo</strong>
+    </td>
+    <td align="center" width="50%">
+      <img src="docs/assets/verify-sample.jpg" alt="Verification sample" width="100%" />
+      <br />
+      <strong>Photo to Verify</strong>
+    </td>
+  </tr>
+</table>
 
-1. Detect one face in each full photo with InsightFace.
-2. Crop only the detected face region from each photo.
-3. Generate embeddings from those face-only crops.
-4. Compare the embeddings with normalized cosine similarity and apply the same default threshold style as the backend `IdentityChecker`.
+## Product Behavior
 
-The app rejects images with zero faces or multiple faces and asks the user to retry that specific photo.
+- Each side supports both upload and live camera capture.
+- The reference and verification images are validated independently.
+- Zero-face images show a clear retry message.
+- Multi-face images are rejected instead of auto-selecting a face.
+- The Verify button stays disabled until both photos contain exactly one detected face.
+- The result screen shows original photos, similarity score, Match or No Match verdict, and the face regions used for review.
 
-The app logic is intentionally close to the existing backend pattern:
+## Implementation Notes
+
+The face logic follows the same simple backend pattern used in production-style services:
 
 - `FaceDetector` wraps `insightface.app.FaceAnalysis()`.
-- The model runs on CPU with `ctx_id=-1` and `det_size=(640, 640)`.
-- `IdentityChecker` normalizes both embeddings before the dot-product similarity check.
-- Default match threshold is `0.60`, adjustable from the sidebar.
-
-## Screenshots/GIF
-
-Add screenshots after running or deploying the app:
-
-- Upload-vs-upload demo using the bundled sample pair.
-- Webcam capture demo using `st.camera_input`.
+- The detector runs on CPU with `ctx_id=-1` and `det_size=(640, 640)`.
+- `IdentityChecker` normalizes embeddings before dot-product cosine comparison.
+- Default match threshold is `0.60`, adjustable in the app.
 
 ## Setup
 
@@ -55,53 +81,27 @@ uv pip install -r requirements.txt
 uv run streamlit run app.py
 ```
 
-The first run may take a few minutes because InsightFace downloads the open `buffalo_l` model pack automatically.
+The first run can take a few minutes because InsightFace downloads the open model pack automatically.
 
-This project includes `runtime.txt` with `python-3.12` to match the local backend/runtime target.
-
-On Windows with Python 3.12, `insightface==0.7.3` may need Microsoft Visual C++ Build Tools because it builds a native extension when no matching wheel is available.
-
-## Demo Mode
-
-The sidebar includes a bundled sample-photo mode with:
-
-- A clear match pair using synthetic images.
-- A clear non-match pair using synthetic images.
-
-No real customer, bank, or proprietary images are included.
-
-## Privacy
-
-Photos are processed only in memory for the current Streamlit session. The app does not use a database, does not create accounts, and does not persist uploaded or captured images after the session ends.
-
-## Deployment Steps
-
-Streamlit Community Cloud deployment must be completed by the author in their browser session:
-
-1. Push this repo to a public GitHub repository.
-2. Sign in to [Streamlit Community Cloud](https://share.streamlit.io/) with GitHub.
-3. Choose **Deploy a public app from GitHub**.
-4. Select repository, branch `main`, and main file path `app.py`.
-5. Leave secrets empty because this app needs no API keys.
-6. Wait for the first model download and app startup to finish.
-7. Copy the verified `*.streamlit.app` URL into the Live Demo section above.
-
-`requirements.txt` uses `opencv-python-headless`, which is required for Streamlit Cloud compatibility.
-`runtime.txt` pins Python 3.12 to match the target runtime.
-
-## Limitations
-
-This is an educational portfolio demo, not a production identity-verification system. It does not include liveness checks, anti-spoofing, fraud workflows, manual review queues, audit logging, or compliance controls.
+On Windows with Python 3.12, `insightface==0.7.3` may require Microsoft Visual C++ Build Tools when a matching wheel is unavailable.
 
 ## Tech Stack
 
-- Python
-- Streamlit
-- InsightFace `0.7.3`
-- ONNX Runtime `1.20.1`
-- OpenCV headless `4.10.0.84`
-- Pillow `11.0.0`
-- NumPy `1.26.4`
+<table>
+  <tr><td><strong>Frontend</strong></td><td>Streamlit</td></tr>
+  <tr><td><strong>Face analysis</strong></td><td>InsightFace 0.7.3</td></tr>
+  <tr><td><strong>Runtime</strong></td><td>Python 3.12</td></tr>
+  <tr><td><strong>Inference backend</strong></td><td>ONNX Runtime 1.20.1 CPU</td></tr>
+  <tr><td><strong>Image handling</strong></td><td>OpenCV headless, Pillow, NumPy</td></tr>
+</table>
+
+## Privacy
+
+Photos are processed only in memory for the active Streamlit session. The app does not use a database, user accounts, cloud storage, or persistent file storage for uploaded or captured images.
+
+## Limitations
+
+This is an educational and portfolio demonstration, not a production identity-verification system. It does not include liveness checks, anti-spoofing, fraud review workflows, audit logging, or compliance controls.
 
 ## Project Structure
 
@@ -120,6 +120,11 @@ face-verification-playground/
 │   └── no_match_pair/
 │       ├── ref.jpg
 │       └── verify.jpg
+├── docs/
+│   └── assets/
+│       ├── app-preview.png
+│       ├── reference-sample.jpg
+│       └── verify-sample.jpg
 ├── README.md
 ├── LICENSE
 ├── .gitignore
