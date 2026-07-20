@@ -21,11 +21,17 @@ class FaceValidation:
     bbox: tuple[int, int, int, int] | None
     crop_rgb: np.ndarray | None
     preview_rgb: np.ndarray | None
+    embedding: np.ndarray | None
     error: str | None
 
     @property
     def is_valid(self) -> bool:
-        return self.error is None and self.bbox is not None and self.crop_rgb is not None
+        return (
+            self.error is None
+            and self.bbox is not None
+            and self.crop_rgb is not None
+            and self.embedding is not None
+        )
 
 
 class FaceDetector:
@@ -124,6 +130,7 @@ def validate_single_face(face_detector: FaceDetector, image_rgb: np.ndarray) -> 
             bbox=None,
             crop_rgb=None,
             preview_rgb=None,
+            embedding=None,
             error="No face detected - please try a clearer, front-facing photo.",
         )
 
@@ -133,7 +140,19 @@ def validate_single_face(face_detector: FaceDetector, image_rgb: np.ndarray) -> 
             bbox=None,
             crop_rgb=None,
             preview_rgb=None,
+            embedding=None,
             error="Multiple faces detected in this photo - please provide a photo with only one face.",
+        )
+
+    embedding = getattr(faces[0], "embedding", None)
+    if embedding is None:
+        return FaceValidation(
+            image_rgb=image_rgb,
+            bbox=None,
+            crop_rgb=None,
+            preview_rgb=None,
+            embedding=None,
+            error="InsightFace could not create an embedding for this face - please try a clearer photo.",
         )
 
     bbox = normalize_bbox(faces[0].bbox, image_rgb.shape)
@@ -145,6 +164,7 @@ def validate_single_face(face_detector: FaceDetector, image_rgb: np.ndarray) -> 
             bbox=None,
             crop_rgb=None,
             preview_rgb=None,
+            embedding=None,
             error="The detected face crop was empty - please try a clearer, centered photo.",
         )
 
@@ -153,6 +173,6 @@ def validate_single_face(face_detector: FaceDetector, image_rgb: np.ndarray) -> 
         bbox=bbox,
         crop_rgb=crop_rgb,
         preview_rgb=draw_detection_box(image_rgb, bbox),
+        embedding=np.asarray(embedding, dtype=np.float32),
         error=None,
     )
-

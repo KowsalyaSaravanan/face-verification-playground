@@ -17,19 +17,163 @@ from src.face_utils import (
 ROOT_DIR = Path(__file__).parent
 
 
+def inject_styles() -> None:
+    st.markdown(
+        """
+        <style>
+        :root {
+            --kyc-ink: #111827;
+            --kyc-muted: #6b7280;
+            --kyc-line: #e5e7eb;
+            --kyc-soft: #f7f8fb;
+            --kyc-green: #047857;
+            --kyc-red: #dc2626;
+            --kyc-blue: #1d4ed8;
+        }
+        .stApp {
+            background: linear-gradient(180deg, #f6f8fb 0%, #ffffff 32%);
+        }
+        .block-container {
+            max-width: 1180px;
+            padding-top: 2rem;
+            padding-bottom: 3rem;
+        }
+        [data-testid="stSidebar"] {
+            display: none;
+        }
+        [data-testid="stHeader"] {
+            background: rgba(255, 255, 255, 0.86);
+            backdrop-filter: blur(10px);
+        }
+        h1, h2, h3, p {
+            letter-spacing: 0;
+        }
+        div.stButton > button[kind="primary"] {
+            width: 220px;
+            height: 48px;
+            border-radius: 6px;
+            background: #111827;
+            border: 1px solid #111827;
+            font-weight: 700;
+        }
+        div.stButton > button[kind="primary"]:hover {
+            background: #1f2937;
+            border-color: #1f2937;
+        }
+        .hero {
+            border: 1px solid var(--kyc-line);
+            border-radius: 8px;
+            padding: 28px 30px;
+            background: #ffffff;
+            box-shadow: 0 18px 40px rgba(17, 24, 39, 0.07);
+            margin-bottom: 20px;
+        }
+        .eyebrow {
+            color: var(--kyc-blue);
+            font-size: 0.78rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .hero h1 {
+            color: var(--kyc-ink);
+            font-size: clamp(2rem, 4vw, 3.3rem);
+            line-height: 1.05;
+            margin: 0;
+        }
+        .hero p {
+            color: var(--kyc-muted);
+            max-width: 760px;
+            font-size: 1rem;
+            margin: 14px 0 0 0;
+        }
+        .privacy {
+            border: 1px solid #bfdbfe;
+            background: #eff6ff;
+            color: #1e3a8a;
+            border-radius: 6px;
+            padding: 12px 14px;
+            margin: 8px 0 18px 0;
+            font-size: 0.92rem;
+        }
+        .section-title {
+            font-size: 1.02rem;
+            font-weight: 800;
+            color: var(--kyc-ink);
+            margin: 0 0 4px 0;
+        }
+        .section-subtitle {
+            font-size: 0.88rem;
+            color: var(--kyc-muted);
+            margin: 0 0 14px 0;
+        }
+        .status-ok {
+            border: 1px solid #bbf7d0;
+            background: #f0fdf4;
+            color: #166534;
+            border-radius: 6px;
+            padding: 10px 12px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .status-wait {
+            border: 1px solid #e5e7eb;
+            background: #f9fafb;
+            color: #4b5563;
+            border-radius: 6px;
+            padding: 10px 12px;
+            margin-bottom: 10px;
+        }
+        .badge {
+            display: inline-block;
+            padding: 0.52rem 0.8rem;
+            border-radius: 6px;
+            color: white;
+            font-weight: 800;
+            margin-top: 0.25rem;
+        }
+        .badge.match { background: var(--kyc-green); }
+        .badge.no-match { background: var(--kyc-red); }
+        .result-panel {
+            border: 1px solid var(--kyc-line);
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 18px;
+            margin-top: 14px;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 @st.cache_resource(show_spinner="Loading InsightFace models. First run can take a few minutes...")
 def get_face_detector():
     return load_face_detector()
 
 
-def show_privacy_note() -> None:
-    st.sidebar.caption(
-        "Photos are processed only in memory for this session and are not saved or stored anywhere."
+def show_header() -> None:
+    st.markdown(
+        """
+        <div class="hero">
+            <div class="eyebrow">KYC face match demo</div>
+            <h1>Face Verification Playground</h1>
+            <p>Compare a reference photo with a verification photo using InsightFace detection,
+            face-only review crops, and normalized embedding similarity.</p>
+        </div>
+        <div class="privacy">Photos are processed only in memory for this session. Nothing is saved,
+        stored in a database, or kept after the session ends.</div>
+        """,
+        unsafe_allow_html=True,
     )
 
 
 def image_input(label: str, key_prefix: str):
-    st.subheader(label)
+    st.markdown(f'<div class="section-title">{label}</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="section-subtitle">Upload an image or capture a live webcam photo.</div>',
+        unsafe_allow_html=True,
+    )
     mode = st.radio(
         "Input method",
         ["Upload", "Use Camera"],
@@ -61,7 +205,10 @@ def image_input(label: str, key_prefix: str):
 
 def validate_and_render(face_detector, label: str, image_rgb):
     if image_rgb is None:
-        st.info(f"Add a {label.lower()} to continue.")
+        st.markdown(
+            f'<div class="status-wait">Waiting for {label.lower()}.</div>',
+            unsafe_allow_html=True,
+        )
         return None
 
     try:
@@ -75,7 +222,7 @@ def validate_and_render(face_detector, label: str, image_rgb):
         st.image(image_rgb, caption="Retry with upload or camera.", width="stretch")
         return validation
 
-    st.success("Exactly one face detected.")
+    st.markdown('<div class="status-ok">Exactly one face detected.</div>', unsafe_allow_html=True)
     st.image(validation.preview_rgb, caption="Detected face region", width="stretch")
     return validation
 
@@ -88,51 +235,62 @@ def load_demo_pair(pair_name: str):
 
 
 def result_badge(is_match: bool) -> None:
-    color = "#16803c" if is_match else "#b42318"
     label = "Match" if is_match else "No Match"
+    css_class = "match" if is_match else "no-match"
     st.markdown(
-        f"""
-        <div style="display:inline-block;padding:0.45rem 0.8rem;border-radius:6px;
-        background:{color};color:white;font-weight:700;margin-top:0.25rem;">{label}</div>
-        """,
+        f'<div class="badge {css_class}">{label}</div>',
         unsafe_allow_html=True,
     )
 
 
 def main() -> None:
-    st.set_page_config(page_title="Face Verification Playground", page_icon="ID", layout="wide")
-    st.title("Face Verification Playground")
-    st.caption("KYC-style two-photo face verification with InsightFace.")
-    show_privacy_note()
+    st.set_page_config(
+        page_title="Face Verification Playground",
+        page_icon="ID",
+        layout="wide",
+        initial_sidebar_state="collapsed",
+    )
+    inject_styles()
+    show_header()
 
     face_detector = get_face_detector()
 
-    st.sidebar.header("Demo")
-    demo_mode = st.sidebar.toggle("Use bundled sample photos", value=False)
-    threshold = st.sidebar.slider(
-        "Match threshold",
-        min_value=0.20,
-        max_value=0.70,
-        value=float(SIMILARITY_THRESHOLD),
-        step=0.01,
-    )
+    controls = st.container(border=True)
+    with controls:
+        control_col_1, control_col_2 = st.columns([1, 2])
+        with control_col_1:
+            demo_mode = st.toggle("Use bundled sample photos", value=False)
+        with control_col_2:
+            threshold = st.slider(
+                "Match threshold",
+                min_value=0.20,
+                max_value=0.70,
+                value=float(SIMILARITY_THRESHOLD),
+                step=0.01,
+            )
 
     if demo_mode:
-        pair_name = st.sidebar.selectbox("Sample pair", list(SAMPLE_PAIRS.keys()))
+        pair_name = st.selectbox("Sample pair", list(SAMPLE_PAIRS.keys()))
         reference_image, verify_image = load_demo_pair(pair_name)
     else:
         reference_image = verify_image = None
 
     ref_col, verify_col = st.columns(2)
     with ref_col:
-        if not demo_mode:
-            reference_image = image_input(REFERENCE_LABEL, "reference")
-        reference_validation = validate_and_render(face_detector, REFERENCE_LABEL, reference_image)
+        with st.container(border=True):
+            if not demo_mode:
+                reference_image = image_input(REFERENCE_LABEL, "reference")
+            else:
+                st.markdown(f'<div class="section-title">{REFERENCE_LABEL}</div>', unsafe_allow_html=True)
+            reference_validation = validate_and_render(face_detector, REFERENCE_LABEL, reference_image)
 
     with verify_col:
-        if not demo_mode:
-            verify_image = image_input(VERIFY_LABEL, "verify")
-        verify_validation = validate_and_render(face_detector, VERIFY_LABEL, verify_image)
+        with st.container(border=True):
+            if not demo_mode:
+                verify_image = image_input(VERIFY_LABEL, "verify")
+            else:
+                st.markdown(f'<div class="section-title">{VERIFY_LABEL}</div>', unsafe_allow_html=True)
+            verify_validation = validate_and_render(face_detector, VERIFY_LABEL, verify_image)
 
     can_verify = bool(
         reference_validation
@@ -148,8 +306,8 @@ def main() -> None:
     if verify_clicked and can_verify:
         try:
             identity_checker = IdentityChecker(face_detector, threshold=threshold)
-            reference_embedding = identity_checker.get_embedding(reference_validation.crop_rgb)
-            verify_embedding = identity_checker.get_embedding(verify_validation.crop_rgb)
+            reference_embedding = reference_validation.embedding
+            verify_embedding = verify_validation.embedding
             is_match, score = identity_checker.verify_embeddings(reference_embedding, verify_embedding)
         except Exception as exc:
             st.error(f"Verification failed: {exc}")
@@ -157,8 +315,8 @@ def main() -> None:
 
         similarity_percent = max(0.0, min(1.0, score)) * 100
 
-        st.divider()
-        st.header("Verification Result")
+        st.markdown('<div class="result-panel">', unsafe_allow_html=True)
+        st.subheader("Verification Result")
         photo_col_1, photo_col_2 = st.columns(2)
         with photo_col_1:
             st.image(reference_validation.image_rgb, caption="Original reference photo", width="stretch")
@@ -168,6 +326,7 @@ def main() -> None:
         st.metric("Similarity score", f"{similarity_percent:.2f}%")
         result_badge(is_match)
         st.caption(f"Decision threshold: {threshold:.2f} cosine similarity")
+        st.markdown("</div>", unsafe_allow_html=True)
 
         with st.expander("See what the model actually compared"):
             crop_col_1, crop_col_2 = st.columns(2)
