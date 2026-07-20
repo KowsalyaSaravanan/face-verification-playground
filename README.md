@@ -51,7 +51,19 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
+Using `uv` with Python 3.12:
+
+```bash
+uv venv --python 3.12 .venv
+uv pip install -r requirements.txt
+uv run streamlit run app.py
+```
+
 The first run may take a few minutes because InsightFace downloads the open `buffalo_l` model pack automatically.
+
+This project includes `runtime.txt` with `python-3.12` to match the local backend/runtime target.
+
+On Windows with Python 3.12, `insightface==0.7.3` may need Microsoft Visual C++ Build Tools because it builds a native extension when no matching wheel is available.
 
 ## Demo Mode
 
@@ -79,6 +91,7 @@ Streamlit Community Cloud deployment must be completed by the author in their br
 7. Copy the verified `*.streamlit.app` URL into the Live Demo section above.
 
 `requirements.txt` uses `opencv-python-headless`, which is required for Streamlit Cloud compatibility.
+`runtime.txt` pins Python 3.12 to match the target runtime.
 
 ## Limitations
 
@@ -100,6 +113,7 @@ This is an educational portfolio demo, not a production identity-verification sy
 face-verification-playground/
 ├── app.py
 ├── requirements.txt
+├── runtime.txt
 ├── src/
 │   ├── face_utils.py
 │   └── config.py
