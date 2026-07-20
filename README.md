@@ -51,6 +51,7 @@ The repository includes synthetic sample images so recruiters can try the app im
 ## Product Behavior
 
 - Each side supports both upload and live camera capture.
+- A sample-photo mode is included for instant recruiter demos.
 - The reference and verification images are validated independently.
 - Zero-face images show a clear retry message.
 - Multi-face images are rejected instead of auto-selecting a face.

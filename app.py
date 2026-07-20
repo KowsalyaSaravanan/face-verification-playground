@@ -390,7 +390,12 @@ def main() -> None:
         st.markdown('<div class="panel-heading">Verification setup</div>', unsafe_allow_html=True)
         control_col_1, control_col_2 = st.columns([1, 2])
         with control_col_1:
-            demo_mode = st.checkbox("Load sample photos", value=False)
+            source_mode = st.radio(
+                "Photo source",
+                ["Manual input", "Sample photos"],
+                horizontal=True,
+            )
+            demo_mode = source_mode == "Sample photos"
         with control_col_2:
             threshold = st.slider(
                 "Match threshold",
