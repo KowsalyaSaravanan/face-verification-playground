@@ -1,0 +1,6 @@
+streamlit>=1.36
+insightface>=0.7.3
+onnxruntime>=1.18
+opencv-python-headless>=4.10
+pillow>=10.4
+numpy>=1.26
